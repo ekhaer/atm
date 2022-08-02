@@ -4,19 +4,29 @@ import { Account } from "./account.js";
 async function main() {
   // Login
   const username = await Commandline.ask(
-    "Login"
+    "$ Login"
   );
   try {
     //account checking
     if(await Account.find(username) === null) {
         //user is not exist
-        console.log("user is not exist")
-
+        const createAccount = await Commandline.ask(
+          "This account does not exist, do you wish to create it? (yes / no)"
+        );
+  
+        if (createAccount === "yes") {
+          Account.createUser(username);
+          const account = new Account(username);
+          await account.getBalance(username);
+          account.print();
+          machineAsk(account);
+        } else {
+          return;
+        }
     } else {
         //user is exist
-        console.log("user is exist")
         const account = new Account(username);
-        await account.getBalance();
+        await account.print();
         machineAsk(account);
     }
   } catch (error) {
@@ -32,15 +42,16 @@ async function machineAsk(account) {
     let amount = parseFloat(input[1]);
     let receiver = "";
     if (action.includes("deposit")) {
-      await Account.deposit(amount);
+      await account.deposit(amount);
     } else if (action.includes("withdraw")) {
-      await Account.withdraw(amount);
+      await account.withdraw(amount);
     } else if (action.includes("transfer")) {
       amount = parseFloat(input[2]);
       receiver = input[1];
-      await Account.transfer(amount, receiver);
+      await account.transfer(amount, receiver);
+    } else if (action === "logout") {
+      await account.logout();
     }
-    // account.print();
   }
 
 
